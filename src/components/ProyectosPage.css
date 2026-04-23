@@ -1,0 +1,167 @@
+/* Contenedor principal */
+.wrapper {
+    padding: 30px 50px;
+    background-color: #f5f6f8; 
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    
+    /* Evita que la página entera haga scroll horizontal */
+    box-sizing: border-box;
+    max-width: 100vw;
+    overflow-x: hidden; 
+}
+
+/* Cabecera blanca superior */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.header-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+.search-input {
+    width: 250px;
+}
+
+.person-filter {
+    cursor: pointer;
+    color: #676879;
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background 0.2s;
+}
+
+.person-filter:hover {
+    background-color: #e6e9ef;
+}
+
+/* Pestañas del lado derecho */
+.header-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.top-tabs {
+    display: flex;
+    gap: 20px;
+    color: #676879;
+    font-size: 15px;
+}
+
+.top-tabs span {
+    cursor: pointer;
+    padding-bottom: 5px;
+}
+
+.active-tab {
+    color: #0073ea; 
+    border-bottom: 3px solid #0073ea;
+    font-weight: 500;
+}
+
+/* Contenedor de la tarjeta blanca */
+.main-content {
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 100%; 
+    box-sizing: border-box;
+}
+
+.main-content h3 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #323338;
+}
+
+/* === EL CAMBIO MÁGICO PARA EL SCROLL HORIZONTAL === */
+.spreadsheet-container {
+    margin-top: 15px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto; /* Forzamos el scroll horizontal directo en la capa externa */
+    overflow-y: hidden; /* Ocultamos el vertical extra porque Jspreadsheet ya maneja el suyo interno */
+}
+
+/* === Personalización de Jspreadsheet === */
+.jspreadsheet {
+    border: none !important;
+}
+
+/* Color y estilo de la cabecera de la tabla */
+.jspreadsheet > thead > tr > td {
+    background-color: #f5f6f8;
+    color: #323338;
+    font-weight: 500;
+    padding: 4px 6px !important;
+    font-size: 12px !important;
+    border-color: #e6e9ef;
+}
+
+/* Bordes más suaves para las celdas */
+.jspreadsheet > tbody > tr > td {
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    height: 32px !important;
+    max-height: 32px !important;
+    border-color: #e6e9ef;
+    color: #333;
+}
+
+.jspreadsheet > tbody > tr > td > div {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ocultar el cuadro pequeño de la esquina superior izquierda */
+.jspreadsheet_corner {
+    display: none !important;
+}
+
+/* Ajustes del Modal */
+.modal-title-custom {
+    font-weight: 700;
+}
+
+/* Ocultar TODOS los botones inferiores del calendario (Reset, Done, Update) */
+.jcalendar-controls {
+    display: none !important;
+}
+
+/* Asegurarnos de que el calendario flote por encima de todo */
+.jcalendar {
+    z-index: 99999 !important;
+}
+
+/* Le damos el color azul desde el CSS para que la librería no lo borre por seguridad */
+/* Le damos el color azul y leemos la variable matemática desde el HTML */
+.barra-relleno-azul {
+    background-color: #17A2B8 !important;
+    width: var(--progreso) !important; /* ¡ESTA ES LA LÍNEA MÁGICA! */
+}
+
+.barra-texto-blanco {
+    color: #ffffff !important;
+}
+
+.barra-texto-oscuro {
+    color: #333333 !important;
+}

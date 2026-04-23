@@ -1,0 +1,104 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.App { width: 100%; display: flex; justify-content: center; }
+
+.container {
+    padding: 30px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 5px;
+    width: 100%;
+    max-width: 450px;
+    box-sizing: border-box;
+}
+
+.combo-group { margin-bottom: 15px; }
+
+.combo-box {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.timeDisplay {
+    padding: 20px;
+    font-size: 35px;
+    font-weight: bold;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: opacity 0.3s;
+}
+
+.timeDisplay h4 {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+}
+
+.timeDisplay.dimmed { opacity: 0.5; }
+.break-display { background: #fff3cd; border-color: #ffeeba; color: #856404; }
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #0d6efd;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn:hover { background-color: #0b5ed7; }
+.btn:disabled { background: #6c757d; cursor: not-allowed; opacity: 0.7; }
+.btn-small { background: none; border: none; color: #0d6efd; cursor: pointer; margin-bottom: 15px; }
+
+.start-btn { background: #198754; } .start-btn:hover { background: #157347; }
+.pause-btn { background: #ffc107; color: #000; } .pause-btn:hover { background: #ffca2c; }
+.break-btn { background: #dc3545; } .break-btn:hover { background: #bb2d3b; }
+.finish-break-btn { background: #212529; width: 100%; margin-top: 10px; }
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 350px;
+}
+
+.modal-actions {
+    display: flex; justify-content: space-between; margin-top: 20px;
+}
+
+.cancel-btn { background: #6c757d; } .cancel-btn:hover { background: #5c636a; }
+
+.laps { margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 10px; }
+.laps ul { list-style: none; padding: 0; }
+.laps li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
