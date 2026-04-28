@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useZxing } from 'react-zxing';
+// 1. IMPORTAMOS LA NUEVA LIBRERÍA
+import { Scanner } from '@yudiel/react-qr-scanner'; 
 
 export interface OperationData {
   id: string;
@@ -22,44 +23,34 @@ const workCentersList = [
 ];
 
 // =======================================================
-// NUEVO: COMPONENTE AISLADO SÓLO PARA LA CÁMARA
-// Esto garantiza que la cámara solo intente prenderse 
-// cuando la pantalla negra realmente está visible.
+// COMPONENTE ACTUALIZADO CON @yudiel/react-qr-scanner
 // =======================================================
 const ScannerModal = ({ onScan, onClose }: { onScan: (text: string) => void, onClose: () => void }) => {
-  const [scanError, setScanError] = useState('');
-
-  const { ref } = useZxing({
-    onResult(result: any) {
-      onScan(result.getText()); // Mandamos el texto escaneado de regreso
-    },
-    onError(error) {
-      setScanError(error.message || "Error al acceder a la cámara.");
-    },
-    constraints: {
-      video: { facingMode: 'environment' }
-    }
-  });
-
   return (
-    <div className="scanner-modal">
-      <button className="scanner-close-btn" onClick={onClose}>
+    <div className="scanner-modal" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <button className="scanner-close-btn" onClick={onClose} style={{ zIndex: 3050 }}>
         <i className="fa-solid fa-xmark"></i>
       </button>
       
-      {scanError && (
-        <div style={{ position: 'absolute', top: '80px', left: '20px', right: '20px', background: '#dc3545', color: 'white', padding: '15px', borderRadius: '8px', zIndex: 3020, textAlign: 'center' }}>
-          <strong>⚠️ Error de Cámara:</strong> <br/>
-          {scanError} <br/><br/>
-          <small>Revisa los permisos del navegador.</small>
-        </div>
-      )}
-
-      <video ref={ref} className="scanner-video" playsInline muted autoPlay />
+      <div style={{ width: '100%', maxWidth: '500px' }}>
+        <Scanner
+          onScan={(result) => {
+            // Yudiel actualizó su librería y ahora devuelve un arreglo de resultados.
+            // Esta validación cubre la lectura correcta del código 128 o QR.
+            if (Array.isArray(result) && result.length > 0) {
+              onScan(result[0].rawValue);
+            } else if (typeof result === 'string') {
+              onScan(result);
+            }
+          }}
+          onError={(error) => {
+            console.error("Error del escáner:", error);
+          }}
+        />
+      </div>
     </div>
   );
 };
-// =======================================================
 
 
 export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
