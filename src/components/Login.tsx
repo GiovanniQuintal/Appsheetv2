@@ -7,33 +7,29 @@ interface LoginProps {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // Para mostrar mensajes de error
+  const [error, setError] = useState(''); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      // 1. Apuntamos a tu controlador de .NET
-      const response = await fetch('https://localhost:7021/api/Account/login', {
+      const response = await fetch('https://localhost:7021/api/account/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        // 2. Mandamos el JSON tal como lo espera tu LoginModel
         body: JSON.stringify({ 
           login: usuario, 
           password: password 
         }),
-        // 3. ¡CRÍTICO! Esto permite que el navegador guarde la cookie de Identity
         credentials: 'include' 
       });
 
       if (response.ok) {
-  console.log("Login exitoso, cookie guardada.");
-  onLoginSuccess(usuario); // <--- Mandamos el usuario
-} else {
-        // Leemos el error que manda tu Unauthorized() o BadRequest()
+        console.log("Login exitoso, cookie guardada.");
+        onLoginSuccess(usuario);
+      } else {
         const errorText = await response.text();
         setError(errorText || "Credenciales inválidas");
       }
@@ -43,6 +39,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     }
   };
 
+  // --- NUEVA FUNCIÓN DE PRUEBA ---
+  const handleBypass = () => {
+    // Entramos directamente sin consultar al servidor
+    onLoginSuccess("Operador de Prueba"); 
+  };
+
   return (
     <div className="login-container">
       <p className="login-description">
@@ -50,7 +52,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       </p>
 
       <form onSubmit={handleLogin}>
-        {/* Mostrar mensaje de error si falla el login */}
         {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
         <div className="form-group">
@@ -75,10 +76,23 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           />
         </div>
 
-        <div className="bottom-btn-container">
+        {/* CONTENEDOR DE BOTONES ACTUALIZADO */}
+        <div className="bottom-btn-container" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          
           <button type="submit" className="btn-primary">
             Iniciar Sesión
           </button>
+
+          {/* BOTÓN DE PRUEBA (Gris para diferenciarlo) */}
+          <button 
+            type="button" 
+            className="btn-primary" 
+            style={{ backgroundColor: '#6c757d' }} 
+            onClick={handleBypass}
+          >
+            Modo Prueba (Bypass)
+          </button>
+
         </div>
       </form>
     </div>
