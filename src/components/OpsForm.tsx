@@ -33,12 +33,21 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
   const [isScanning, setIsScanning] = useState(false);
 
   // 3. Configuración del escáner
+// 3. Configuración del escáner (Actualizada)
   const { ref } = useZxing({
     onResult(result: any) {
       // Cuando lee un código, lo pone en el input de operación y cierra la cámara
       setOperation(result.getText());
       setIsScanning(false);
     },
+    onError(error) {
+      // Si la pantalla se queda negra, esto nos dirá por qué en la consola
+      console.error("Error al abrir la cámara:", error);
+    },
+    // Le decimos que obligatoriamente use la cámara trasera del celular
+    constraints: {
+      video: { facingMode: 'environment' } 
+    }
   });
 
   const filteredWorkCenters = workCentersList.filter(wc => 
