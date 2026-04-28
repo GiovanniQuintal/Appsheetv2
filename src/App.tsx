@@ -1,82 +1,119 @@
-import React, { useState, useEffect } from 'react';
-import './App.css'; 
-import Selector from './components/Selector'; 
-import Tracker from './components/Tracker'; 
-
-// 1. Le decimos a TypeScript que 'window' puede tener la propiedad 'deferredPrompt'
-declare global {
-  interface Window {
-    deferredPrompt: any;
-  }
-}
+import React, { useState } from 'react';
+import './App.css';
+import logoArgos from './assets/logo192.png'; 
+import Sidebar from './components/Sidebar';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import OpsForm, { OperationData } from './components/OpsForm';
 
 function App() {
-  const [vistaActual, setVistaActual] = useState<'SELECTOR' | 'TRACKER'>('SELECTOR');
-  const [operacionActiva, setOperacionActiva] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(''); 
+  const [currentView, setCurrentView] = useState<'DASHBOARD' | 'OPS_FORM'>('DASHBOARD');
+
+  // Estado del usuario autenticado
+  const [loggedUsername, setLoggedUsername] = useState<string>('');
   
-  // 2. Estado para mostrar u ocultar el botón de instalación
-  const [isReadyForInstall, setIsReadyForInstall] = useState(false);
+  // Memoria de Operaciones
+  const [operationsList, setOperationsList] = useState<OperationData[]>([]);
 
-  // 3. Capturamos el evento de instalación
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: any) => {
-      event.preventDefault();
-      window.deferredPrompt = event;
-      setIsReadyForInstall(true); // Mostramos el botón
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  // 4. Función que se ejecuta al presionar "Descargar App"
-  const downloadApp = async () => {
-    const promptEvent = window.deferredPrompt;
-    if (!promptEvent) return;
-
-    promptEvent.prompt();
-    const result = await promptEvent.userChoice;
-    console.log("Elección del usuario:", result);
-    
-    window.deferredPrompt = null;
-    setIsReadyForInstall(false);
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setActiveTab(''); 
+    setCurrentView('DASHBOARD');
+    setLoggedUsername('');
   };
 
-  const handleStartOperation = (operacion: string) => {
-    setOperacionActiva(operacion);
-    setVistaActual('TRACKER');
+  // Guardar nueva operación
+  const handleSaveOperation = (newOp: OperationData) => {
+    setOperationsList([...operationsList, newOp]);
+    setCurrentView('DASHBOARD');
   };
 
-  const handleVolver = () => {
-    setOperacionActiva(null);
-    setVistaActual('SELECTOR');
+  // Borrar operación (ícono bote de basura)
+  const handleDeleteOperation = (id: string) => {
+    setOperationsList(operationsList.filter(op => op.id !== id));
+  };
+
+  // Cerrar operación (modal de alarma) - Por ahora la borraremos visualmente, 
+  // después aquí mandarás el fetch a tu API para marcarla como completada.
+  const handleCloseOperation = (id: string) => {
+    setOperationsList(operationsList.filter(op => op.id !== id));
+  };
+
+  const getWindowTitle = () => {
+    if (!isLoggedIn) return 'Iniciar Sesión';
+    if (currentView === 'OPS_FORM') return 'Slice Open Ops Form';
+    if (activeTab === 'operaciones') return 'Operaciones';
+    return ''; 
   };
 
   return (
-    <div className="App">
-      {/* Botón global de instalación de PWA */}
-      {isReadyForInstall && (
-        <div style={{ background: '#0d6efd', color: 'white', padding: '10px', textAlign: 'center' }}>
-          ¿Quieres instalar el Time Tracker? 
-          <button onClick={downloadApp} style={{ marginLeft: '10px', cursor: 'pointer' }}>
-            Instalar App
+    <div className="app-layout">
+      <header className="topbar">
+        {currentView === 'OPS_FORM' ? (
+          <button className="menu-btn" onClick={() => setCurrentView('DASHBOARD')}>
+            <i className="fa-solid fa-arrow-left"></i>
           </button>
+        ) : (
+          <button className="menu-btn" onClick={() => setIsSidebarOpen(true)}>
+            <i className="fa-solid fa-bars-staggered"></i>
+          </button>
+        )}
+        
+        <div className="brand-title" style={{ display: 'flex', alignItems: 'center' }}>
+          {isLoggedIn && (
+            <img 
+              src={logoArgos} 
+              alt="Logo Argos" 
+              style={{ width: '40px', height: '40px', objectFit: 'contain', marginRight: '10px' }} 
+            /> 
+          )}
+          <span>{getWindowTitle()}</span>
         </div>
-      )}
 
-      {vistaActual === 'SELECTOR' && (
-        <Selector onStartOperation={handleStartOperation} />
-      )}
+        {isLoggedIn && currentView === 'DASHBOARD' && (
+          <div className="topbar-actions">
+            <i className="fa-solid fa-magnifying-glass"></i>
+            {activeTab === 'operaciones' && (
+              <i className="fa-regular fa-square-check"></i>
+            )}
+            <i className="fa-solid fa-arrow-rotate-right"></i>
+          </div>
+        )}
+      </header>
 
-      {vistaActual === 'TRACKER' && operacionActiva && (
-        <Tracker 
-          operationName={operacionActiva} 
-          onBack={handleVolver} 
-        />
-      )}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        isLoggedIn={isLoggedIn}
+        onLogout={handleLogout}
+      />
+
+      <main className="main-content" style={{ padding: isLoggedIn && currentView === 'DASHBOARD' ? '0' : '0' }}>
+        {!isLoggedIn ? (
+          <Login onLoginSuccess={(user) => { 
+            setIsLoggedIn(true); 
+            setLoggedUsername(user); // Guardamos el usuario real
+          }} />
+        ) : currentView === 'DASHBOARD' ? (
+          <Dashboard 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            onOpenForm={() => setCurrentView('OPS_FORM')} 
+            operations={operationsList}
+            onDeleteOp={handleDeleteOperation}
+            onCloseOp={handleCloseOperation}
+          />
+        ) : (
+          <OpsForm 
+            username={loggedUsername} 
+            onClose={() => setCurrentView('DASHBOARD')} 
+            onSave={handleSaveOperation}
+          />
+        )}
+      </main>
     </div>
   );
 }
