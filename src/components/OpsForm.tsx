@@ -32,21 +32,23 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
   // 2. Estado para abrir/cerrar la cámara
   const [isScanning, setIsScanning] = useState(false);
 
-  // 3. Configuración del escáner
-// 3. Configuración del escáner (Actualizada)
+// 1. Agregamos un estado para mostrar el error en pantalla
+  const [scanError, setScanError] = useState('');
+
+  // 2. Configuración del escáner más permisiva
   const { ref } = useZxing({
     onResult(result: any) {
-      // Cuando lee un código, lo pone en el input de operación y cierra la cámara
       setOperation(result.getText());
       setIsScanning(false);
+      setScanError(''); // Limpiamos errores si funciona
     },
     onError(error) {
-      // Si la pantalla se queda negra, esto nos dirá por qué en la consola
-      console.error("Error al abrir la cámara:", error);
+      // En lugar de ocultarlo en la consola, lo guardamos para verlo en la pantalla
+      setScanError(error.message || "Error desconocido al acceder a la cámara.");
     },
-    // Le decimos que obligatoriamente use la cámara trasera del celular
+    // Dejamos que el navegador decida la mejor cámara trasera disponible
     constraints: {
-      video: { facingMode: 'environment' } 
+      video: { facingMode: 'environment' }
     }
   });
 
@@ -153,15 +155,28 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
           </div>
         </div>
       )}
-
-      {/* MODAL DE LA CÁMARA (NUEVO) */}
+{/* MODAL DE LA CÁMARA (CORREGIDO PARA MÓVILES) */}
       {isScanning && (
         <div className="scanner-modal">
-          <button className="scanner-close-btn" onClick={() => setIsScanning(false)}>
+          <button className="scanner-close-btn" onClick={() => { setIsScanning(false); setScanError(''); }}>
             <i className="fa-solid fa-xmark"></i>
           </button>
-          {/* Aquí es donde se inyecta la cámara del celular/PC */}
-          <video ref={ref} className="scanner-video" />
+      {scanError && (
+            <div style={{ position: 'absolute', top: '80px', left: '20px', right: '20px', background: '#dc3545', color: 'white', padding: '15px', borderRadius: '8px', zIndex: 3020, textAlign: 'center' }}>
+              <strong>⚠️ Error de Cámara:</strong> <br/>
+              {scanError} <br/><br/>
+              <small>Toca el candado en la barra de direcciones de tu navegador y asegúrate de que el permiso de Cámara esté en "Permitir".</small>
+            </div>
+          )}
+
+          {/* ATRIBUTOS CRÍTICOS PARA MÓVILES: playsInline, muted y autoPlay */}
+          <video 
+            ref={ref} 
+            className="scanner-video" 
+            playsInline 
+            muted 
+            autoPlay 
+          />
         </div>
       )}
     </>
