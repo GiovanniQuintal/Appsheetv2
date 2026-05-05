@@ -653,3 +653,84 @@ body {
   cursor: pointer;
   z-index: 3010;
 }
+
+/* --- ESTILOS ADMIN DASHBOARD --- */
+.admin-dashboard {
+  padding: 20px;
+  background-color: #f4f6f9;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-header h2 {
+  margin: 0;
+  color: #253C60; /* Tono institucional */
+  font-size: 24px;
+}
+
+.refresh-btn {
+  background-color: #253C60;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.refresh-btn:hover {
+  background-color: #1a2a44;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow-x: auto; /* Para que no se rompa en pantallas pequeñas */
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background-color: #253C60;
+  color: white;
+  padding: 15px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  color: #444;
+  font-size: 15px;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.status-badge {
+  background-color: #ffc107;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}

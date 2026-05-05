@@ -22,21 +22,31 @@ export default function Dashboard({ activeTab, setActiveTab, onOpenForm, operati
         operations.length === 0 ? (
           <div className="empty-state">No items</div>
         ) : (
-          <ul className="operations-list">
-            {operations.map(op => (
-              <li key={op.id} className="operation-item">
-                <div className="operation-info">
-                  <span className="operation-user">{op.username}</span>
-                  <span className="operation-number">{op.operation}</span>
-                </div>
-                <div className="operation-actions">
-                  <i className="fa-solid fa-trash-can" onClick={() => onDeleteOp(op.id)}></i>
-                  <i className="fa-regular fa-circle-check"></i>
-                  <i className="fa-solid fa-clock" onClick={() => setOpToClose(op.id)}></i>
-                </div>
-              </li>
-            ))}
-          </ul>
+          // Dentro del mapeo de la lista en Dashboard.tsx
+<ul className="operations-list">
+  {operations.map(op => (
+    <li key={op.idSignature} className="operation-item">
+      <div className="operation-info">
+        <span className="operation-user">{op.username}</span>
+        <span className="operation-number">{op.operation}</span>
+      </div>
+      <div className="operation-actions">
+        {/* Borrar local (opcional) */}
+        <i className="fa-solid fa-trash-can" onClick={() => onDeleteOp(op.idSignature)}></i>
+        
+        {/* Ícono de Check estático */}
+        <i className="fa-regular fa-circle-check"></i>
+        
+        {/* BOTÓN DEL RELOJ: Al dar clic, guardamos el idSignature para el modal */}
+        <i 
+          className="fa-solid fa-clock" 
+          onClick={() => setOpToClose(op.idSignature)}
+          style={{ color: '#0d6efd', cursor: 'pointer' }}
+        ></i>
+      </div>
+    </li>
+  ))}
+</ul>
         )
       ) : (
         <div className="empty-state"></div>

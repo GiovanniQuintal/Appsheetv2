@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-// 1. IMPORTAMOS LA NUEVA LIBRERÍA
+import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner'; 
 
 export interface OperationData {
-  id: string;
+  idSignature: string; // Cambiamos 'id' por 'idSignature' para que coincida con el backend
   operation: string;
-  workCenter: string;
+  workCenterId: string;
   username: string;
   remarks: string;
 }
@@ -16,71 +15,119 @@ interface OpsFormProps {
   onSave: (data: OperationData) => void;
 }
 
-const workCentersList = [
-  "TORNO 1", "TORNO 2", "TORNO 3", "TORNO 4",
-  "CENTRO DE MAQUINADO 1", "CENTRO DE MAQUINADO 2", "CENTRO DE MAQUINADO 3",
-  "CONTROL DE CALIDAD 1", "CONTROL DE CALIDAD 2", "TORNO CONVENCIONAL"
-];
+// Interfaz para la BD
+interface WorkCenterDB {
+  id: string;
+  name: string;
+}
 
-// =======================================================
-// COMPONENTE ACTUALIZADO CON @yudiel/react-qr-scanner
-// =======================================================
+// --- COMPONENTE SCANNER ---
 const ScannerModal = ({ onScan, onClose }: { onScan: (text: string) => void, onClose: () => void }) => {
   return (
     <div className="scanner-modal" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <button className="scanner-close-btn" onClick={onClose} style={{ zIndex: 3050 }}>
         <i className="fa-solid fa-xmark"></i>
       </button>
-      
       <div style={{ width: '100%', maxWidth: '500px' }}>
         <Scanner
           onScan={(result) => {
-            // Yudiel actualizó su librería y ahora devuelve un arreglo de resultados.
-            // Esta validación cubre la lectura correcta del código 128 o QR.
-            if (Array.isArray(result) && result.length > 0) {
-              onScan(result[0].rawValue);
-            } else if (typeof result === 'string') {
-              onScan(result);
-            }
+            if (Array.isArray(result) && result.length > 0) onScan(result[0].rawValue);
+            else if (typeof result === 'string') onScan(result);
           }}
-          onError={(error) => {
-            console.error("Error del escáner:", error);
-          }}
+          onError={(error) => console.error("Error del escáner:", error)}
         />
       </div>
     </div>
   );
 };
 
-
 export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
   const [operation, setOperation] = useState('');
-  const [workCenter, setWorkCenter] = useState('');
+  
+  // Ahora manejamos el ID para la BD y el Name para mostrarlo al usuario
+  const [workCenterId, setWorkCenterId] = useState('');
+  const [workCenterName, setWorkCenterName] = useState('');
+  
   const [remarks, setRemarks] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
   const [isScanning, setIsScanning] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Estado para guardar la lista que viene de la BD
+  const [workCentersList, setWorkCentersList] = useState<WorkCenterDB[]>([]);
+
+  // Efecto para cargar los WorkCenters al abrir el formulario
+  useEffect(() => {
+    fetch('http://192.168.3.117:81/api/WorkCenters')
+      .then(res => res.json())
+      .then(data => setWorkCentersList(data))
+      .catch(err => console.error("Error cargando máquinas:", err));
+  }, []);
 
   const filteredWorkCenters = workCentersList.filter(wc => 
-    wc.toLowerCase().includes(searchTerm.toLowerCase())
+    wc.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSaveClick = () => {
-    const newOp: OperationData = {
-      id: Math.random().toString(36).substr(2, 9),
-      operation,
-      workCenter,
-      username,
-      remarks
+  const handleSaveClick = async () => {
+    setErrorMsg('');
+    
+    // Validaciones básicas
+    if (!operation || !workCenterId) {
+      setErrorMsg('Operation y WorkCenter son obligatorios.');
+      return;
+    }
+
+    // Lógica para extraer el WorkOrder y la Secuencia de "12547.1"
+    const parts = operation.split('.');
+    const workOrder = parts[0];
+    const sequence = parts.length > 1 ? parseInt(parts[1], 10) : 1; // Si no tiene punto, es la secuencia 1 por defecto
+
+    const payload = {
+      workOrder: workOrder,
+      operation: operation,
+      operationSequence: sequence,
+      workCenterId: workCenterId,
+      username: username,
+      remarks: remarks
     };
-    onSave(newOp);
+
+    try {
+      // Mandamos la petición al Backend
+      const response = await fetch('http://192.168.3.117:81/api/Operations/open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Se guardó en BD, le avisamos a App.tsx para que actualice la vista
+        onSave({
+          idSignature: data.idSignature, 
+          operation: operation,
+          workCenterId: workCenterId,
+          username: username,
+          remarks: remarks
+        });
+      } else {
+        // Aquí mostramos si hay error de validación (ej. ya hay una abierta o faltan secuencias)
+        setErrorMsg(data.message || "Error al abrir la operación.");
+      }
+    } catch (err) {
+      setErrorMsg("Error de conexión con el servidor.");
+    }
   };
 
   return (
     <>
       <div className="appsheet-form">
+        
+        {/* Mostrar errores del servidor */}
+        {errorMsg && <div style={{ color: 'red', marginBottom: '15px', fontWeight: 'bold' }}>{errorMsg}</div>}
+
         <div className="form-group">
           <label className="form-label">Operation <span>*</span></label>
           <div className="form-input-container">
@@ -88,11 +135,9 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
               type="text" 
               value={operation} 
               onChange={(e) => setOperation(e.target.value)} 
+              placeholder="Ej. 12547.1"
             />
-            <i 
-              className="fa-solid fa-qrcode icon-inside" 
-              onClick={() => setIsScanning(true)}
-            ></i>
+            <i className="fa-solid fa-qrcode icon-inside" onClick={() => setIsScanning(true)}></i>
           </div>
         </div>
 
@@ -101,7 +146,7 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
           <div className="form-input-container" onClick={() => setIsModalOpen(true)}>
             <input 
               type="text" 
-              value={workCenter} 
+              value={workCenterName} 
               readOnly 
               placeholder="Seleccionar..." 
             />
@@ -146,32 +191,31 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
           </div>
 
           <ul className="modal-list">
-            {filteredWorkCenters.map((wc, index) => (
-              <li key={index} onClick={() => setWorkCenter(wc)}>
+            {filteredWorkCenters.map((wc) => (
+              <li key={wc.id} onClick={() => {
+                setWorkCenterId(wc.id);
+                setWorkCenterName(wc.name);
+              }}>
                 <input 
                   type="radio" 
-                  checked={workCenter === wc} 
-                  onChange={() => setWorkCenter(wc)}
+                  checked={workCenterId === wc.id} 
+                  onChange={() => {}}
                 />
-                {wc}
+                {wc.name}
               </li>
             ))}
           </ul>
 
           <div className="modal-footer">
-            <button className="modal-btn clear-btn" onClick={() => setWorkCenter('')}>Clear</button>
+            <button className="modal-btn clear-btn" onClick={() => { setWorkCenterId(''); setWorkCenterName(''); }}>Clear</button>
             <button className="modal-btn done-btn" onClick={() => setIsModalOpen(false)}>Done</button>
           </div>
         </div>
       )}
 
-      {/* AQUÍ LLAMAMOS AL NUEVO COMPONENTE AISLADO */}
       {isScanning && (
         <ScannerModal 
-          onScan={(text) => {
-            setOperation(text);
-            setIsScanning(false);
-          }}
+          onScan={(text) => { setOperation(text); setIsScanning(false); }}
           onClose={() => setIsScanning(false)}
         />
       )}

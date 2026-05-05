@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import OpsForm, { OperationData } from './components/OpsForm';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -18,11 +19,16 @@ function App() {
   // Memoria de Operaciones
   const [operationsList, setOperationsList] = useState<OperationData[]>([]);
 
+  const [userRole, setUserRole] = useState<string>('');
+
+  
+
   const handleLogout = () => {
     setIsLoggedIn(false);
     setActiveTab(''); 
     setCurrentView('DASHBOARD');
     setLoggedUsername('');
+    setUserRole(''); // Limpiamos el rol al salir
   };
 
   // Guardar nueva operación
@@ -33,14 +39,38 @@ function App() {
 
   // Borrar operación (ícono bote de basura)
   const handleDeleteOperation = (id: string) => {
-    setOperationsList(operationsList.filter(op => op.id !== id));
+    setOperationsList(operationsList.filter(op => op.idSignature !== id));
   };
 
   // Cerrar operación (modal de alarma) - Por ahora la borraremos visualmente, 
   // después aquí mandarás el fetch a tu API para marcarla como completada.
-  const handleCloseOperation = (id: string) => {
-    setOperationsList(operationsList.filter(op => op.id !== id));
-  };
+  // Cerrar operación con la BD Real
+  const handleCloseOperation = async (idSignature: string) => {
+    try {
+      const response = await fetch(`http://192.168.3.117:81/api/Operations/close/${idSignature}`, {
+        method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+      });
+
+      const data = await response.json();
+
+    if (response.ok) {
+      // 2. Si el servidor respondió OK, actualizamos el estado en React
+      // Quitamos la operación de la lista actual (porque ya no está "Abierta")
+      setOperationsList(prevList => prevList.filter(op => op.idSignature !== idSignature));
+      
+      console.log("Operación cerrada con éxito en SQL Server:", data.finishTime);
+    } else {
+      // 3. Si el servidor detectó un error (ej. ya estaba cerrada)
+      alert(data.message || "Error al intentar cerrar la operación.");
+    }
+  } catch (error) {
+    console.error("Error de conexión:", error);
+    alert("No se pudo conectar con el servidor para cerrar la operación.");
+  }
+};
 
   const getWindowTitle = () => {
     if (!isLoggedIn) return 'Iniciar Sesión';
@@ -48,6 +78,19 @@ function App() {
     if (activeTab === 'operaciones') return 'Operaciones';
     return ''; 
   };
+
+  // Dentro de App.tsx, crea esta función:
+const fetchMyOperations = async (username: string) => {
+  try {
+    const response = await fetch(`http://192.168.3.117:81/api/Operations/my-active/${username}`);
+    if (response.ok) {
+      const data = await response.json();
+      setOperationsList(data); // Llenamos la lista con lo que hay en SQL Server
+    }
+  } catch (error) {
+    console.error("Error al cargar mis operaciones:", error);
+  }
+};
 
   return (
     <div className="app-layout">
@@ -93,19 +136,30 @@ function App() {
 
       <main className="main-content" style={{ padding: isLoggedIn && currentView === 'DASHBOARD' ? '0' : '0' }}>
         {!isLoggedIn ? (
-          <Login onLoginSuccess={(user) => { 
+          <Login onLoginSuccess={(user, role) => { 
             setIsLoggedIn(true); 
-            setLoggedUsername(user); // Guardamos el usuario real
+            setLoggedUsername(user);
+            setUserRole(role);
+            if(role === 'Operador') {
+              fetchMyOperations(user); // <--- Llamamos a la función que creamos arriba
+            }
           }} />
         ) : currentView === 'DASHBOARD' ? (
-          <Dashboard 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
-            onOpenForm={() => setCurrentView('OPS_FORM')} 
-            operations={operationsList}
-            onDeleteOp={handleDeleteOperation}
-            onCloseOp={handleCloseOperation}
-          />
+
+         // AQUÍ OCURRE LA MAGIA DEL ENRUTAMIENTO POR ROL
+          userRole === 'Admin' ? (
+            <AdminDashboard />
+          ) : (
+            <Dashboard 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+              onOpenForm={() => setCurrentView('OPS_FORM')} 
+              operations={operationsList}
+              onDeleteOp={handleDeleteOperation}
+              onCloseOp={handleCloseOperation}
+            />
+          )
+          
         ) : (
           <OpsForm 
             username={loggedUsername} 
