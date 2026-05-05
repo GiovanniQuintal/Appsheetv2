@@ -47,6 +47,7 @@ function App() {
   // Cerrar operación con la BD Real
   const handleCloseOperation = async (idSignature: string) => {
     try {
+      const response = await fetch(`https://192.168.3.117:444/api/Operations/close/${idSignature}`, {
         method: 'POST',
       headers: {
         'Content-Type': 'application/json'
