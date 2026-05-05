@@ -95,7 +95,7 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
 
     try {
       // Mandamos la petición al Backend
-      const response = await fetch('s://192.168.3.117:444/api/Operations/open', {
+      const response = await fetch('https://192.168.3.117:444/api/Operations/open', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
