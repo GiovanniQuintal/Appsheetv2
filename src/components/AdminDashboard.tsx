@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const fetchActiveOperations = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.3.117:81/api/Operations/active');
+      const response = await fetch('https://192.168.3.117:444/api/Operations/active');
       if (response.ok) {
         const data = await response.json();
         setOperations(data);
@@ -37,7 +37,7 @@ export default function AdminDashboard() {
   const handleCloseOperation = async (idSignature: string) => {
     setIsClosing(true);
     try {
-      const response = await fetch(`http://192.168.3.117:81/api/Operations/close/${idSignature}`, {
+      const response = await fetch(`https://192.168.3.117:444/api/Operations/close/${idSignature}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

@@ -47,7 +47,6 @@ function App() {
   // Cerrar operación con la BD Real
   const handleCloseOperation = async (idSignature: string) => {
     try {
-      const response = await fetch(`http://192.168.3.117:81/api/Operations/close/${idSignature}`, {
         method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -82,7 +81,7 @@ function App() {
   // Dentro de App.tsx, crea esta función:
 const fetchMyOperations = async (username: string) => {
   try {
-    const response = await fetch(`http://192.168.3.117:81/api/Operations/my-active/${username}`);
+    const response = await fetch(`https://192.168.3.117:444/api/Operations/my-active/${username}`);
     if (response.ok) {
       const data = await response.json();
       setOperationsList(data); // Llenamos la lista con lo que hay en SQL Server
