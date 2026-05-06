@@ -37,10 +37,7 @@ function App() {
     setCurrentView('DASHBOARD');
   };
 
-  // Borrar operación (ícono bote de basura)
-  const handleDeleteOperation = (id: string) => {
-    setOperationsList(operationsList.filter(op => op.idSignature !== id));
-  };
+  
 
   // Cerrar operación (modal de alarma) - Por ahora la borraremos visualmente, 
   // después aquí mandarás el fetch a tu API para marcarla como completada.
@@ -91,6 +88,21 @@ const fetchMyOperations = async (username: string) => {
     console.error("Error al cargar mis operaciones:", error);
   }
 };
+
+const handleDeleteOperation = async (idSignature: string) => {
+    try {
+      const response = await fetch(`https://192.168.3.117:444/api/Operations/delete/${idSignature}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setOperationsList(prevList => prevList.filter(op => op.idSignature !== idSignature));
+      } else {
+        alert("Error al eliminar la operación.");
+      }
+    } catch (error) {
+      alert("Error de conexión al intentar eliminar.");
+    }
+  };
 
   return (
     <div className="app-layout">
@@ -148,7 +160,7 @@ const fetchMyOperations = async (username: string) => {
 
          // AQUÍ OCURRE LA MAGIA DEL ENRUTAMIENTO POR ROL
           userRole === 'Admin' ? (
-            <AdminDashboard />
+            <AdminDashboard onOpenForm={() => setCurrentView('OPS_FORM')} />
           ) : (
             <Dashboard 
               activeTab={activeTab} 

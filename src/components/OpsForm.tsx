@@ -70,28 +70,55 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
     wc.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // ... estados de OpsForm ...
+
   const handleSaveClick = async () => {
     setErrorMsg('');
     
-    // Validaciones básicas
     if (!operation || !workCenterId) {
       setErrorMsg('Operation y WorkCenter son obligatorios.');
       return;
     }
 
-    // Lógica para extraer el WorkOrder y la Secuencia de "12547.1"
-    const parts = operation.split('.');
-    const workOrder = parts[0];
-    const sequence = parts.length > 1 ? parseInt(parts[1], 10) : 1; // Si no tiene punto, es la secuencia 1 por defecto
+    // 1. LIMPIEZA: Quitar el símbolo '#' si viene al principio
+    let cleanOp = operation.trim();
+    if (cleanOp.startsWith('#')) {
+      cleanOp = cleanOp.substring(1);
+    }
+
+    // 2. VALIDACIÓN: Excepciones permitidas sin punto
+    const validExceptions = [
+      "44534", "44545", "44556", "44567", "44578", "44589", 
+      "44600", "44611", "44622", "44633", "44644", "44655", 
+      "44666", "44677", "44688", "44699", "44700"
+    ];
+
+    // Si NO está en las excepciones y NO tiene punto, bloqueamos
+    if (!validExceptions.includes(cleanOp) && !cleanOp.includes('.')) {
+      setErrorMsg('Formato inválido: La operación debe contener un punto para indicar la secuencia (Ej. 12547.1) o ser un código especial válido.');
+      return;
+    }
+
+    // 3. SEPARACIÓN: Si tiene punto, lo dividimos. Si es excepción, la secuencia es 1.
+    let workOrder = cleanOp;
+    let sequence = 1;
+
+    if (cleanOp.includes('.')) {
+      const parts = cleanOp.split('.');
+      workOrder = parts[0];
+      sequence = parseInt(parts[1], 10);
+    }
 
     const payload = {
       workOrder: workOrder,
-      operation: operation,
+      operation: cleanOp, // Mandamos el número ya limpio (sin el #)
       operationSequence: sequence,
       workCenterId: workCenterId,
       username: username,
       remarks: remarks
     };
+
+    // ... (El bloque try/catch con el fetch a /api/operations/open se queda exactamente igual) ...
 
     try {
       // Mandamos la petición al Backend
@@ -195,12 +222,9 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
               <li key={wc.id} onClick={() => {
                 setWorkCenterId(wc.id);
                 setWorkCenterName(wc.name);
+                setIsModalOpen(false); // <--- CIERRE AUTOMÁTICO
               }}>
-                <input 
-                  type="radio" 
-                  checked={workCenterId === wc.id} 
-                  onChange={() => {}}
-                />
+                <input type="radio" checked={workCenterId === wc.id} readOnly />
                 {wc.name}
               </li>
             ))}
@@ -208,7 +232,7 @@ export default function OpsForm({ onClose, username, onSave }: OpsFormProps) {
 
           <div className="modal-footer">
             <button className="modal-btn clear-btn" onClick={() => { setWorkCenterId(''); setWorkCenterName(''); }}>Clear</button>
-            <button className="modal-btn done-btn" onClick={() => setIsModalOpen(false)}>Done</button>
+            {/* Se eliminó el botón Done */}
           </div>
         </div>
       )}

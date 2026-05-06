@@ -14,6 +14,7 @@ export default function Dashboard({ activeTab, setActiveTab, onOpenForm, operati
   
   // Estado para controlar a qué operación se le dio clic en la alarma
   const [opToClose, setOpToClose] = useState<string | null>(null);
+  const [opToDelete, setOpToDelete] = useState<string | null>(null);
 
   return (
     <div className="dashboard-container">
@@ -32,8 +33,7 @@ export default function Dashboard({ activeTab, setActiveTab, onOpenForm, operati
       </div>
       <div className="operation-actions">
         {/* Borrar local (opcional) */}
-        <i className="fa-solid fa-trash-can" onClick={() => onDeleteOp(op.idSignature)}></i>
-        
+<i className="fa-solid fa-trash-can" onClick={() => setOpToDelete(op.idSignature)} style={{ color: '#dc3545', cursor: 'pointer' }}></i>        
         {/* Ícono de Check estático */}
         <i className="fa-regular fa-circle-check"></i>
         
@@ -84,6 +84,29 @@ export default function Dashboard({ activeTab, setActiveTab, onOpenForm, operati
                 }}
               >
                 CERRAR OPERACIÓN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMACIÓN - ELIMINAR */}
+      {opToDelete && (
+        <div className="confirm-modal-overlay">
+          <div className="confirm-modal">
+            <div className="confirm-title" style={{ color: '#dc3545' }}>Eliminar Registro</div>
+            <div className="confirm-body">¿Estás seguro de eliminar esta operación? Esta acción no se puede deshacer.</div>
+            <div className="confirm-actions">
+              <button className="confirm-btn" style={{ color: '#555' }} onClick={() => setOpToDelete(null)}>CANCELAR</button>
+              <button 
+                className="confirm-btn" 
+                style={{ color: '#dc3545', fontWeight: 'bold' }}
+                onClick={() => {
+                  onDeleteOp(opToDelete);
+                  setOpToDelete(null);
+                }}
+              >
+                SÍ, ELIMINAR
               </button>
             </div>
           </div>
