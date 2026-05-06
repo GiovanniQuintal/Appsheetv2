@@ -260,7 +260,7 @@ const [isDeleting, setIsDeleting] = useState(false);
         </div>
       )}
 
-      // 4. Y finalmente, agrega el Modal al final de tu JSX (justo abajo del modal de cierre):
+      
       {/* MODAL ELIMINAR ADMIN */}
       {opToDelete && (
         <div className="confirm-modal-overlay">
